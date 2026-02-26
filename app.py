@@ -221,8 +221,9 @@ def run_github_scanner():
             
             try:
                 url = "https://api.github.com/search/issues"
-                q = f"{gh_kw} is:issue is:open"
-                params = {"q": q, "sort": "created", "order": "desc", "per_page": 10}
+                # Added filters to avoid issues labeled as "hardware" or "hard"
+                q = f"{gh_kw} is:issue is:open -label:hardware -label:hard"
+                params = {"q": q, "sort": "created", "order": "desc", "per_page": 50}
                 resp = requests.get(url, params=params, headers=headers, timeout=15)
                 
                 if resp.status_code == 200:
@@ -281,7 +282,7 @@ def run_hn_scanner():
             
             try:
                 url = "http://hn.algolia.com/api/v1/search_by_date"
-                params = {"query": hn_kw, "tags": "story", "hitsPerPage": 10}
+                params = {"query": hn_kw, "tags": "story", "hitsPerPage": 50}
                 resp = requests.get(url, params=params, timeout=15)
                 
                 if resp.status_code == 200:
@@ -358,8 +359,12 @@ if page == "Settings":
         st.caption("Optional configuration to expand scanning breadth or rate limits.")
         col3, col4 = st.columns(2)
         with col3:
+            st.markdown("🚨 **[Click here to get a Discord Bot Token](https://discord.com/developers/applications)**")
+            st.caption("To use, create a New Application -> Bot -> Reset Token -> Copy. Make sure to toggle **Message Content Intent** ON under the Bot tab before saving!")
             discord_bot_token = st.text_input("Discord Bot Token", value=app_settings.get("discord_bot_token", ""), type="password")
         with col4:
+            st.markdown("🐙 **[Click here to get a GitHub Token](https://github.com/settings/tokens/new)**")
+            st.caption("A Fine-grained token or Classic Token (no scopes required) increases the Rate Limit of searches from 10 to 30 requests per minute.")
             github_token = st.text_input("GitHub Token (Increases Rate Limit)", value=app_settings.get("github_token", ""), type="password")
         
         st.markdown("**4. Scraper Keywords / Parameters**")
@@ -461,16 +466,22 @@ elif page == "Dashboard":
         if leads_col is None:
             st.warning("Connect Database to view Live Feed.")
         else:
-            twenty_four_hours_ago = datetime.now(timezone.utc) - timedelta(hours=24)
+            time_filter = st.selectbox("Show leads from the last:", ["24 Hours", "3 Days", "7 Days", "30 Days"])
+            hours = 24
+            if time_filter == "3 Days": hours = 72
+            elif time_filter == "7 Days": hours = 168
+            elif time_filter == "30 Days": hours = 720
+                
+            lookback_time = datetime.now(timezone.utc) - timedelta(hours=hours)
             cursor = leads_col.find({
                 "status": "New", 
-                "created_at": {"$gte": twenty_four_hours_ago}
+                "created_at": {"$gte": lookback_time}
             }).sort("created_at", -1)
             
             fresh_leads = list(cursor)
             
             if len(fresh_leads) == 0:
-                st.info("No fresh leads found in the last 24 hours. Keep scanning!")
+                st.info(f"No fresh leads found in the last {time_filter}. Keep scanning!")
             
             for lead in fresh_leads:
                 lead_tag = lead.get('tag', 'Unknown')
