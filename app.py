@@ -176,13 +176,16 @@ if page == "Settings":
     
     with st.form("settings_form"):
         st.markdown("**1. Database**")
+        st.caption("🔗 [Get MongoDB URI from MongoDB Atlas](https://cloud.mongodb.com/) (Select 'Connect' ➡️ 'Drivers' ➡️ 'Python')")
         mongo_uri = st.text_input("MongoDB Connection String URI", value=app_settings["mongo_uri"], type="password")
         
         st.markdown("**2. Reddit API**")
+        st.caption("🔗 [Create a Reddit App here](https://www.reddit.com/prefs/apps) (Choose 'script', set redirect uri to `http://localhost:8080`)")
         reddit_client = st.text_input("Reddit Client ID", value=app_settings.get("reddit_client", ""), type="password")
         reddit_secret = st.text_input("Reddit Secret", value=app_settings.get("reddit_secret", ""), type="password")
         
         st.markdown("**3. Discord**")
+        st.caption("Discord App ➡️ Server Settings ➡️ Integrations ➡️ Webhooks ➡️ New Webhook")
         discord_hook = st.text_input("Discord Webhook", value=app_settings.get("discord_hook", ""), type="password")
         
         st.markdown("**4. AI Configuration (Agnostic)**")
@@ -191,7 +194,7 @@ if page == "Settings":
         ai_model = st.text_input("AI Model Name (e.g. gemma-3, gpt-4)", value=app_settings.get("ai_model", "gemma-3"))
         
         st.markdown("**5. Email Configuration (Optional)**")
-        st.info("Setup Gmail App Passwords to enable sending AI pitches directly via Email.")
+        st.info("Setup Gmail App Passwords to enable sending AI pitches directly via Email. \n\n🔗 [Click here to create a Google App Password](https://myaccount.google.com/apppasswords)")
         email_address = st.text_input("Gmail Address", value=app_settings.get("email_address", ""))
         email_app_password = st.text_input("Gmail App Password", value=app_settings.get("email_app_password", ""), type="password")
         
