@@ -2,3 +2,4 @@ streamlit
 praw
 pymongo
 requests
+yagmail
